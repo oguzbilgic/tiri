@@ -29,3 +29,10 @@ $ git diff master... --name-only | tiri
           ├─ ListIndex.js
           └─ ListModal.js
 ```
+
+And if you want tiri to use green, yellow and red colors for different statuses
+(added, modified and deleted); you can use the `--name-status` option for git.
+
+```
+$ git diff master... --name-status | tiri
+```

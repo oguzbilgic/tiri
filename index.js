@@ -8,35 +8,45 @@ const { r, g, b, w, c, m, y, k } = [
 }), {})
 
 class Node { 
-  constructor(name) {
+  constructor(name, status) {
     this.name = name
     this.children = [] 
+    this.status = status
   }
 
   addMultiple(paths) {
     paths.forEach(this.add.bind(this))
   }
 
-  add(path) {
-    if (!path) {
+  add(line, status) {
+    let found = false
+    let parts;
+
+    if (!line) {
       return 
     }
 
-    const parts = path.split('/')
-    let found = false
+    if (line.match(/\S+/g).length == 2) {
+      // line has status
+      status = line.match(/\S+/g)[0]
+      parts = line.match(/\S+/g)[1].split('/')
+    } else {
+      // Status stays the same
+      parts = line.split('/')
+    }
 
     this.children.forEach(child => {
       if (child.name == parts[0]) {
-        child.add(parts.slice(1).join('/'))
+        child.add(parts.slice(1).join('/'), status)
         found = true
       }
     })
 
     if (!found) {
-      const newNode = new Node(parts[0])
+      const newNode = new Node(parts[0], status)
 
       this.children.push(newNode)
-      newNode.add(parts.slice(1).join('/'))
+      newNode.add(parts.slice(1).join('/'), status)
     }
   }
 
@@ -46,23 +56,37 @@ class Node {
     if (this.children.length == 1) {
       this.name += '/' + this.children[0].name
 
+      this.status = this.children[0].status
       this.children = this.children[0].children
     }
   }
 
   print(levels = [], last = true) {
-    let line = levels.map(level => level ? y('│ ') : '  ').join('')
+    let line = levels.map(level => level ? b('│ ') : '  ').join('')
 
     if (last) {
-      line += y('└─ ')
+      line += b('└─ ')
     } else {
-      line += y('├─ ')
+      line += b('├─ ')
     }
 
     if (this.children.length > 0) {
-      line += y(this.name) + y('/')
+      line += b(this.name) + b('/')
     } else {
-      line += b(this.name)
+      switch (this.status) {
+        case 'A':
+          line += g(this.name)
+          break;
+        case 'M':
+          line += y(this.name)
+          break;
+        case 'D':
+          line += r(this.name)
+          break;
+        default:
+          line += y(this.name)
+          break;
+      }
     }
 
     console.log(line)

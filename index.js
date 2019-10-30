@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 // https://stackoverflow.com/a/46705010/96725
 const { r, g, b, w, c, m, y, k } = [
@@ -7,24 +6,6 @@ const { r, g, b, w, c, m, y, k } = [
 ].reduce((cols, col) => ({
   ...cols,  [col[0]]: f => `\x1b[3${col[1]}m${f}\x1b[0m`
 }), {})
-
-const stdin = process.openStdin();
-
-let files = "";
-
-stdin.on('data', (chunk) => {
-  files += chunk
-})
-
-stdin.on('end', () => {
-  const lines = files.toString().split('\n').filter(l => l)
-
-  const root = new Node('.');
-
-  root.addMultiple(lines)
-  root.merge()
-  root.print()
-});
 
 class Node { 
   constructor(name) {
@@ -96,3 +77,4 @@ class Node {
   }
 }
 
+module.exports = Node

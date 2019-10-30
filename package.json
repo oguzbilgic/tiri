@@ -1,0 +1,19 @@
+{
+  "name": "tiri",
+  "version": "1.0.0",
+  "description": "Display files in tree format",
+  "main": "index.js",
+  "bin": {
+    "tiri": "./bin/tiri.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oguzbilgic/tiri.git"
+  },
+  "author": "Oguz Bilgic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oguzbilgic/tiri/issues"
+  },
+  "homepage": "https://github.com/oguzbilgic/tiri#readme"
+}

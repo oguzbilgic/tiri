@@ -1,47 +1,98 @@
-const output = 
-`gulpfile.js
-src/main/java/com/en/ssp/components/contactlists/ProtoContactListsController.java
-src/main/webapps/common/react/components/checkbox.js
-src/main/webapps/common/react/components/text-input.js
-src/main/webapps/features/contact-lists/react/index/ContactListIndex.js
-src/main/webapps/features/contact-lists/react/index/{IndexTableRow.js => ListRow.js}
-src/main/webapps/features/contact-lists/react/individual-list/ContactRow.js
-src/main/webapps/features/contact-lists/react/individual-list/IndividualList.js
-src/main/webapps/features/contact-lists/react/individual-list/IndividualListHeader.js
-src/main/webapps/features/contact-lists/react/individual-list/SearchBar.js
-src/main/webapps/features/contact-lists/react/individual-list/TitleBar.js
-src/main/webapps/features/contact-lists/react/individual-list/index.js
-src/main/webapps/features/contact-lists/react/shared/buildQueryString.js
-src/main/webapps/features/contact-lists/react/shared/getEcData.js
-src/main/webapps/features/contact-lists/react/shared/multiple-select-menu.js
-src/main/webapps/features/contact-lists/react/shared/parseQueryString.js
-src/main/webapps/features/contact-lists/react/sis-import/DatePicker.js
-src/main/webapps/features/contact-lists/react/sis-import/SisProviderImport.js
-src/main/webapps/features/contact-lists/react/sis-import/StaffTab.js
-src/main/webapps/features/contact-lists/react/sis-import/StudentsGuardiansTab.js
-src/main/webapps/features/contact-lists/react/sis-import/index.js
-src/main/webapps/features/contact-lists/react/sis-search-result/SisSearchResult.js
-src/main/webapps/features/contact-lists/react/sis-search-result/index.js
-src/main/webapps/features/contact-lists/sass/individual-list.scss
-src/main/webapps/features/contact-lists/sass/sis-import.scss
-src/main/webapps/features/contact-lists/sass/sis-search-result.scss
-src/main/webapps/features/form-builder/react/public/app.js
-src/main/webapps/features/form-builder/react/public/classes/payment-form.js
-tomcat/routes/admin-apps.txt
-tomcat/templates/contact-lists/individual-list.ftl
-tomcat/templates/contact-lists/sis-import.ftl
-tomcat/templates/contact-lists/sis-search-result.ftl
-tomcat/templates/sections/list_pages.ftl`
+#!/usr/bin/env node
 
-const lines = output.split('\n')
+// https://stackoverflow.com/a/46705010/96725
+const { r, g, b, w, c, m, y, k } = [
+  ['r', 1], ['g', 2], ['b', 4], ['w', 7],
+  ['c', 6], ['m', 5], ['y', 3], ['k', 0],
+].reduce((cols, col) => ({
+  ...cols,  [col[0]]: f => `\x1b[3${col[1]}m${f}\x1b[0m`
+}), {})
 
+const stdin = process.openStdin();
 
-const objects = lines.map((line) => {
-  return line.split('/').reduceRight((obj, next) => ({[next]: obj}), {});
+let files = "";
+
+stdin.on('data', (chunk) => {
+  files += chunk
 })
 
-const tree = objects.reduceRight((main, object) => {
-  return {...main, ...object}
-}, {})
+stdin.on('end', () => {
+  const lines = files.toString().split('\n').filter(l => l)
 
-console.log(JSON.stringify(objects, null, 2))
+  const root = new Node('.');
+
+  root.addMultiple(lines)
+  root.merge()
+  root.print()
+});
+
+class Node { 
+  constructor(name) {
+    this.name = name
+    this.children = [] 
+  }
+
+  addMultiple(paths) {
+    paths.forEach(this.add.bind(this))
+  }
+
+  add(path) {
+    if (!path) {
+      return 
+    }
+
+    const parts = path.split('/')
+    let found = false
+
+    this.children.forEach(child => {
+      if (child.name == parts[0]) {
+        child.add(parts.slice(1).join('/'))
+        found = true
+      }
+    })
+
+    if (!found) {
+      const newNode = new Node(parts[0])
+
+      this.children.push(newNode)
+      newNode.add(parts.slice(1).join('/'))
+    }
+  }
+
+  merge() {
+    this.children.map(child => child.merge())
+
+    if (this.children.length == 1) {
+      this.name += '/' + this.children[0].name
+
+      this.children = this.children[0].children
+    }
+  }
+
+  print(levels = [], last = true) {
+    let line = levels.map(level => level ? y('│ ') : '  ').join('')
+
+    if (last) {
+      line += y('└─ ')
+    } else {
+      line += y('├─ ')
+    }
+
+    if (this.children.length > 0) {
+      line += y(this.name) + y('/')
+    } else {
+      line += b(this.name)
+    }
+
+    console.log(line)
+
+    if (this.children.length > 0) {
+      this.children.forEach((child, i) => {
+        const isLast = (i+1 == this.children.length)
+
+        child.print([...levels, !last], isLast)
+      })
+    }
+  }
+}
+
